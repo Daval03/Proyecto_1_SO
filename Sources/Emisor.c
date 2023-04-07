@@ -16,6 +16,8 @@
 #define MEM_ID "shared_memory"
 
 int main(int argc, char *argv[]){
+    
+    printf("debuggaazo %d ", 0);
         // Valores compartidos
     char *Modo;
     int clave;
@@ -29,17 +31,18 @@ int main(int argc, char *argv[]){
     // Obtener los argumentos y convertir el número a entero
     Modo = argv[1];
     clave = atoi(argv[2]);
-
+    printf("debuggaazo %d ", 1);
     /* Inicializar semáforos */
     sem_t *sem_llenos, *sem_vacios;
-    sem_llenos = sem_open("sem_llenos",0);
-    sem_vacios = sem_open("sem_vacios",0);
-
+    sem_llenos = sem_open("/sem_llenos",0);
+    sem_vacios = sem_open("/sem_vacios",10);
+    printf("debuggaazo %d ", 2);
     if (sem_llenos == SEM_FAILED || sem_vacios == SEM_FAILED){
         perror("sem_open");
         exit(1);
     }
 
+    printf("debuggaazo %d ", 3);
     // Inicializamos esta memoria compartida
     struct datosCompartida *datos;
 
@@ -70,6 +73,7 @@ int main(int argc, char *argv[]){
         
     } arrayCompartido;
 
+    printf("debuggaazo %d ", 4);
     arrayCompartido *recursosCompartidos = mmap(0, sizeof(arrayCompartido), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
     recursosCompartidos->datos.contEmisoresVivos++;
@@ -88,8 +92,10 @@ int main(int argc, char *argv[]){
 
     // escribir en buffer compartido
     int currentIndex = recursosCompartidos->datos.indiceEmisor;
+    printf("indice %d ", currentIndex);
     recursosCompartidos->elementos[currentIndex].caracter = 'a';
     recursosCompartidos->datos.indiceEmisor ++;
+
 
     //update contadores
     recursosCompartidos->datos.contEmisoresVivos --;
