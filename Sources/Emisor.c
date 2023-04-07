@@ -74,6 +74,14 @@ int main(int argc, char *argv[]){
     }
     recursosCompartidos->datos.contEmisoresVivos++;
 
+    sem_t *sem_llenos, *sem_vacios;
+    
+    // Crear sem_llenos con nombre "sem_llenos" y un valor inicial de 0
+    sem_llenos = sem_open("/sem_llenos", 0);
+    sem_vacios = sem_open("/sem_vacios", 0);
+    recursosCompartidos->datos.sem_vacios = sem_vacios;
+    recursosCompartidos->datos.sem_llenos = sem_llenos;
+
     // espera por espacio disponible para escribir
     sem_wait(recursosCompartidos->datos.sem_vacios);
 
