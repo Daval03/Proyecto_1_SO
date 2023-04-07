@@ -2,13 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/mman.h>   //mmap
 #include <sys/ipc.h>
+#include <sys/stat.h>
 #include <sys/shm.h>
 #include <errno.h>
 #include <semaphore.h>
 #include <fcntl.h>            // Necesario para O_CREAT y O_EXCL
 #include "datosCompartidos.h" // Estructura
+#include "elemento.h"
 #include <time.h>
+
+#define MEM_ID "shared_memory"
 
 int main(int argc, char *argv[]){
         // Valores compartidos
@@ -30,42 +35,69 @@ int main(int argc, char *argv[]){
     sem_llenos = sem_open("sem_llenos",0);
     sem_vacios = sem_open("sem_vacios",0);
 
+    if (sem_llenos == SEM_FAILED || sem_vacios == SEM_FAILED){
+        perror("sem_open");
+        exit(1);
+    }
+
     // Inicializamos esta memoria compartida
     struct datosCompartida *datos;
 
     char *ID="buffer1";
 
     // Crear una clave única para la memoria compartida
-    key_t key = ftok("Data/shmID", *ID);
+    key_t key = ftok(MEM_ID, *ID);
 
-    int tamaño = sizeof(struct datosCompartida);
+    // Para calcular cantidad de elementos
+    struct stat mem_obj;
+    int numeroEspacio;
+
+    // intenta crear la memoria compartida, pero como ya se creo resulta en fd = -1
+    int fd = shm_open(MEM_ID, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
     
-    // Copiamos la memoria compartida
-    int shmid = shmget(key, tamaño, 0666 | IPC_CREAT);
-    if (shmid == -1) {
-        perror("shmget");
-        exit(1);
+    if (fd == -1) {
+        fd = shm_open(MEM_ID, O_RDWR, S_IRUSR | S_IWUSR);
+        fstat(fd, &mem_obj);
+        numeroEspacio = ((mem_obj.st_size) - sizeof(struct datosCompartida))/sizeof(elemento);
     }
     
     // Asignar la estructura a la memoria compartida
-    datos = shmat(shmid, NULL, 0);
-    if (datos == (void *) -1) {
-        perror("shmat");
+
+    typedef struct arrayCompartido
+    {
+        elemento *elementos;
+        struct datosCompartida datos;
+        
+    } arrayCompartido;
+
+    arrayCompartido *recursosCompartidos = mmap(0, sizeof(arrayCompartido), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+    recursosCompartidos->datos.contEmisoresVivos++;
+
+    if (sem_wait(sem_vacios) == -1){
+        perror("sem_wait");
         exit(1);
     }
-    
-    datos->contEmisoresVivos++;
-    sem_wait(sem_vacios);
-    sem_post(sem_llenos);
 
-    /////////////////// Zona critica ////////////////////
+    /* validar que el indice de emisor no exceda buffer
+    if (datos->indiceEmisor >= datos->numeroEspacio){
+        fprintf(stderr, "Error, indice de emisor (%d) excede el tamano del buffer (%d) \n",
+        datos->indiceEmisor, datos->numeroEspacio);
+        exit(1);
+    }*/
 
-    //datos->buffer[1] = 1;
-    datos->indiceEmisor++;
-    datos->contEmisoresVivos--;
-    datos->contEmisoresTotal++;
+    // escribir en buffer compartido
+    int currentIndex = recursosCompartidos->datos.indiceEmisor;
+    recursosCompartidos->elementos[currentIndex].caracter = 'a';
+    recursosCompartidos->datos.indiceEmisor ++;
 
-
+    //update contadores
+    recursosCompartidos->datos.contEmisoresVivos --;
+    recursosCompartidos->datos.contEmisoresTotal ++;
+    if (sem_post(sem_llenos) == -1){
+        perror("sem_post");
+        exit(1);
+    }
 
     time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
     struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm

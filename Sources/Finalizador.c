@@ -24,10 +24,10 @@ int main(){
     // Crear una clave única para la memoria compartida
     key_t key = ftok("Data/shmID", *ID);
 
-    int tamaño = sizeof(struct datosCompartida);
+    int tamano = sizeof(struct datosCompartida);
     
     // Crear la memoria compartida
-    int shmid = shmget(key, tamaño, 0666 | IPC_CREAT);
+    int shmid = shmget(key, tamano, 0666 | IPC_CREAT);
     if (shmid == -1) {
         perror("shmget");
         exit(1);

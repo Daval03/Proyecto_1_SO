@@ -2,14 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/mman.h>   //mmap
+#include <sys/stat.h>   //mode_t
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <unistd.h>  //ftruncate
 #include <errno.h>
 #include <semaphore.h>
 #include <fcntl.h>            // Necesario para O_CREAT y O_EXCL
-#include "datosCompartidos.h" // Estructura
+#include "datosCompartidos.h" // Estructura de vars compartidos
+#include "elemento.h"         // Abstraccion de char y datos individuales
 #include <time.h>
 
+#define MEM_ID "shared_memory"
 int main(int argc, char *argv[]) {
 
     // Valores ingresados
@@ -49,45 +54,62 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    // Inicializamos esta memoria compartida
-    struct datosCompartida *datos;
 
     // Crear una clave única para la memoria compartida
-    key_t key = ftok("Data/shmID", *ID);
+    key_t key = ftok(MEM_ID, *ID);
     
-    int tamaño = sizeof(struct datosCompartida);
+    int tamano = sizeof(struct datosCompartida) + (sizeof(struct elemento)*numeroEspacio);
 
     // Crear la memoria compartida
-    int shmid = shmget(key, tamaño, 0666 | IPC_CREAT);
-    if (shmid == -1) {
-        perror("shmget");
+    int fd = shm_open(MEM_ID, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    
+    if (fd == -1) {
+        perror("shm_open");
         exit(1);
     }
     
     // Asignar la estructura a la memoria compartida
-    datos = shmat(shmid, NULL, 0);
-    if (datos == (void *) -1) {
-        perror("shmat");
+    if (ftruncate(fd, tamano) == -1){
+        perror("ftruncate");
         exit(1);
     }
+
+
+    typedef struct arrayCompartido
+    {
+        elemento *elementos;
+        struct datosCompartida datos;
+        
+    } arrayCompartido;
+
+    // Inicializamos esta memoria compartida
+    arrayCompartido *recursosCompartidos = mmap(0, tamano, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
     // Asignar valores a la estructura
-    datos->buffer = malloc(numeroEspacio * sizeof(int));
-    datos->clave = clave;
-    datos->numeroEspacio = numeroEspacio;
-    datos->contEmisoresTotal=0;
-    datos->contReceptoresTotal=0;
-    datos->contEmisoresVivos=0;
-    datos->contReceptoresVivos=0;
-    datos->indiceEmisor=0;
-    datos->indiceReceptor=0;
-    datos->indiceTxtEmisor=5;
-    datos->indiceTxtReceptor=0;
+    recursosCompartidos->elementos = malloc(numeroEspacio*sizeof(elemento));
+    recursosCompartidos->datos.contEmisoresTotal    = 0;
+    recursosCompartidos->datos.contReceptoresTotal  = 0;
+    recursosCompartidos->datos.contEmisoresVivos    = 0;
+    recursosCompartidos->datos.contReceptoresVivos  = 0;
+    recursosCompartidos->datos.indiceEmisor         = 0;
+    recursosCompartidos->datos.indiceReceptor       = 0;
+    recursosCompartidos->datos.indiceTxtEmisor      = 0;
+    recursosCompartidos->datos.indiceTxtReceptor    = 0;
+    recursosCompartidos->datos.clave                = clave;
 
     printf("\n");
     printf("ID: %-20s\n", ID);
-    printf("Clave:%-20d\n",datos->clave);
-    printf("Numero de espacio:%-20d\n",datos->numeroEspacio );
+    printf("Clave:%-20d\n",recursosCompartidos->datos.clave);
+    printf("Numero de espacios reservados:%-20d\n",numeroEspacio );
     printf("\n");
 
     return 0;
 }
+
+/**
+cd /dev/shm/ 
+ls
+rm shared_memory
+rm sem.sem_llenos
+rm sem.sem_vacios
+*/
