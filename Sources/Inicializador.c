@@ -8,7 +8,6 @@
 #include <sys/shm.h>
 #include <unistd.h>  //ftruncate
 #include <errno.h>
-#include <semaphore.h>
 #include <fcntl.h>            // Necesario para O_CREAT y O_EXCL
 #include "datosCompartidos.h" // Estructura de vars compartidos
 #include "elemento.h"         // Abstraccion de char y datos individuales
@@ -86,8 +85,8 @@ int main(int argc, char *argv[]) {
     arrayCompartido *recursosCompartidos = mmap(0, tamano, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
     // Asignar valores a la estructura
-    recursosCompartidos->elementos = malloc(numeroEspacio*sizeof(elemento));
-    recursosCompartidos->elementos[0].caracter = 'f';
+    recursosCompartidos->elementos                  = malloc(numeroEspacio*sizeof(elemento));
+    //recursosCompartidos->elementos[0].caracter      = 'f';
     recursosCompartidos->datos.contEmisoresTotal    = 0;
     recursosCompartidos->datos.contReceptoresTotal  = 0;
     recursosCompartidos->datos.contEmisoresVivos    = 0;
@@ -97,12 +96,16 @@ int main(int argc, char *argv[]) {
     recursosCompartidos->datos.indiceTxtEmisor      = 0;
     recursosCompartidos->datos.indiceTxtReceptor    = 0;
     recursosCompartidos->datos.clave                = clave;
+    recursosCompartidos->datos.sem_llenos           = sem_llenos;
+    recursosCompartidos->datos.sem_vacios           = sem_vacios;
 
     printf("\n");
     printf("ID: %-20s\n", ID);
     printf("Clave:%-20d\n",recursosCompartidos->datos.clave);
     printf("Numero de espacios reservados:%-20d\n",numeroEspacio );
-    printf("Primer dato escrito :%c \n",recursosCompartidos->elementos[0].caracter);
+    //printf("Primer dato escrito :%c \n",recursosCompartidos->elementos[0].caracter);
+    printf("Direccion de memoria de sem_llenos: %p \n", (void *)recursosCompartidos->datos.sem_llenos);
+    printf("Direccion de memoria de sem_vacios: %p \n", (void *)recursosCompartidos->datos.sem_vacios);
 
     printf("\n");
 
