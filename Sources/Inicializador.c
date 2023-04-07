@@ -87,6 +87,7 @@ int main(int argc, char *argv[]) {
 
     // Asignar valores a la estructura
     recursosCompartidos->elementos = malloc(numeroEspacio*sizeof(elemento));
+    recursosCompartidos->elementos[0].caracter = 'f';
     recursosCompartidos->datos.contEmisoresTotal    = 0;
     recursosCompartidos->datos.contReceptoresTotal  = 0;
     recursosCompartidos->datos.contEmisoresVivos    = 0;
@@ -101,6 +102,8 @@ int main(int argc, char *argv[]) {
     printf("ID: %-20s\n", ID);
     printf("Clave:%-20d\n",recursosCompartidos->datos.clave);
     printf("Numero de espacios reservados:%-20d\n",numeroEspacio );
+    printf("Primer dato escrito :%c \n",recursosCompartidos->elementos[0].caracter);
+
     printf("\n");
 
     return 0;
