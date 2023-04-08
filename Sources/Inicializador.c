@@ -25,13 +25,27 @@ int main(int argc, char *argv[]) {
     // Para correr la vara varias veces borramos los semaforos
     sem_unlink("/sem_vacios");
     sem_unlink("/sem_llenos");
+    sem_unlink("/sem_mutexE");
+    sem_unlink("/sem_mutexR");
 
     /* Inicializar semáforos */
-    sem_t *sem_llenos, *sem_vacios;
-    
+    sem_t *sem_llenos, *sem_vacios, *sem_mutexE, *sem_mutexR;
+
     // Crear sem_llenos con nombre "sem_llenos" y un valor inicial de 0
     sem_llenos = sem_open("/sem_llenos", O_CREAT | O_EXCL, 0644, 0);
     if (sem_llenos == SEM_FAILED) {
+        perror("sem_open");
+        exit(1);
+    }
+    // Crear sem_llenos con nombre "sem_mutexR" y un valor inicial de 1
+    sem_mutexR = sem_open("/sem_mutexR", O_CREAT | O_EXCL, 0644, 1);
+    if (sem_mutexR == SEM_FAILED) {
+        perror("sem_open");
+        exit(1);
+    }
+    // Crear sem_llenos con nombre "sem_mutexE" y un valor inicial de 1
+    sem_mutexE = sem_open("/sem_mutexE", O_CREAT | O_EXCL, 0644, 1);
+    if (sem_mutexE == SEM_FAILED) {
         perror("sem_open");
         exit(1);
     }

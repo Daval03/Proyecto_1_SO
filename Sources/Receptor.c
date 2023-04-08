@@ -26,9 +26,10 @@ int main(int argc, char *argv[]){
     clave = atoi(argv[3]);
 
     /* Inicializar semáforos */
-    sem_t *sem_llenos, *sem_vacios;
+    sem_t *sem_llenos, *sem_vacios, *sem_mutexR;
     sem_llenos = sem_open("/sem_llenos",0);
     sem_vacios = sem_open("/sem_vacios",0);
+    sem_mutexR = sem_open("/sem_mutexR", 0);
 
     // Inicializamos esta memoria compartida
     struct datosCompartida *datos;
@@ -61,19 +62,20 @@ int main(int argc, char *argv[]){
         datos->indiceReceptor=0;
     }
 
-    sem_wait(sem_llenos);
-    sem_post(sem_vacios);
+    //sem_post(sem_vacios);//up
+
+    sem_wait(sem_llenos);//down
+    sem_wait(sem_mutexR);
     
-    //Mutex
     /////////////////// Zona critica ////////////////////
-    char datoBuffer=datos->buffer[datos->indiceReceptor];
+    char datoBuffer = datos->buffer[datos->indiceReceptor];
     char respuesta = datoBuffer^clave;
 
     // Write char del puntero del indice del file 
     text = fputc(respuesta,datos->TxtReceptor);
 
     //Limpiar el buffer
-    datos->buffer[datos->indiceReceptor] = '\0';
+    datos->buffer[datos->indiceReceptor] = '_';
 
      // Obtemos el tiempo
     time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
@@ -94,5 +96,9 @@ int main(int argc, char *argv[]){
     datos->indiceReceptor++;
     datos->contReceptoresVivos--;
     datos->contReceptoresTotal++;
+    
+    sem_post(sem_mutexR);
+    sem_post(sem_vacios);
+    
     return 0;
 }

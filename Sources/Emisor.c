@@ -25,9 +25,10 @@ int main(int argc, char *argv[]){
     clave = atoi(argv[3]);
 
     /* Inicializar semáforos */
-    sem_t *sem_llenos, *sem_vacios;
+    sem_t *sem_llenos, *sem_vacios, *sem_mutexE;
     sem_llenos = sem_open("/sem_llenos",0);
     sem_vacios = sem_open("/sem_vacios",0);
+    sem_mutexE = sem_open("/sem_mutexE", 0);
 
     // Inicializamos esta memoria compartida
     struct datosCompartida *datos;
@@ -56,11 +57,11 @@ int main(int argc, char *argv[]){
     
     //Instanciar los txt
     datos->TxtEmisor=fopen("Data/Emisor.txt","r");
-
     datos->contEmisoresVivos++;
-    sem_post(sem_llenos);
-    sem_wait(sem_vacios);
-    //Mutex
+
+
+    sem_wait(sem_vacios);//down
+    sem_wait(sem_mutexE);
 
     /////////////////// Zona critica ////////////////////
 
@@ -94,5 +95,7 @@ int main(int argc, char *argv[]){
     datos->contEmisoresVivos--;
     datos->contEmisoresTotal++;
 
+    sem_post(sem_mutexE);
+    sem_post(sem_llenos);
     return 0;
 }
