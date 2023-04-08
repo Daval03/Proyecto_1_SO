@@ -48,7 +48,6 @@ int main(int argc, char *argv[]) {
     
     // Crear una clave única para la memoria compartida
     key_t key = ftok("Data/shmid.txt", *ID);
-    printf("key: %-20d\n", key);
 
     size_t tamaño = sizeof(struct datosCompartida);
 
@@ -79,9 +78,8 @@ int main(int argc, char *argv[]) {
     datos->TxtReceptor=fopen("Data/Receptor.txt","w");
 
     printf("\n");
-    printf("ID: %-20s\n", ID);
-    printf("Clave:%-20d\n",datos->clave);
-    printf("Numero de espacio:%-20d\n",datos->numeroEspacio );
-
+    printf("| %-15s | %-10s | %-10s |\n", "ID", "Clave", "Numero de espacios");
+    printf("| %-15s | %-10d | %-18d |\n", ID, clave, numeroEspacio);
+    printf("\n");
     return 0;
 }

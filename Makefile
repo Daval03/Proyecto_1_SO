@@ -1,7 +1,6 @@
 run:
 	./Bin/Inicializador "buffer1" 21 5
 	./Bin/Emisor "Auto" "buffer1" 21	
-	./Bin/Receptor "Auto" "buffer1" 21	
 	
 compile:
 	gcc Sources/Inicializador.c -o Bin/Inicializador -lrt -lpthread

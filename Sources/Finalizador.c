@@ -39,7 +39,8 @@ int main(){
         perror("shmat");
         exit(1);
     }
-    
+    printf("%s", datos->buffer);
+
     int tempEmisores=datos->contEmisoresVivos;
     int tempReceptores=datos->contReceptoresVivos;
     
@@ -60,9 +61,6 @@ int main(){
         sem_wait(sem_llenos);
         //Mutex
     }
-
-
-
 
 
     // Cerramos semaforos
