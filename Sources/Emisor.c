@@ -11,10 +11,13 @@
 #include <time.h>
 
 int main(int argc, char *argv[]){
-        // Valores compartidos
+    // Valores recibidos
     char *Modo;
     char *ID;
     int clave;
+
+    // Valor del textEmisor
+    char text;
 
     // Obtener los argumentos y convertir el número a entero
     Modo = argv[1];
@@ -53,26 +56,36 @@ int main(int argc, char *argv[]){
         datos->indiceEmisor=0;
     }
     
+    //Instanciar los txt
+    datos->TxtEmisor=fopen("Data/Emisor.txt","r");
+
     datos->contEmisoresVivos++;
     sem_post(sem_llenos);
+    sem_wait(sem_vacios);
     //Mutex
 
     /////////////////// Zona critica ////////////////////
 
-    datos->buffer[0] = 1;
+
+    // Movemos el puntero del file, al indice deseado. Aqui lo movemos a datos->indiceEmisor
+    fseek(datos->TxtEmisor, datos->indiceTxtEmisor, SEEK_SET);
+    
+    // Get char del puntero del indice del file 
+    text = fgetc(datos->TxtEmisor);
+    char respuesta= text^clave;
+        
+    datos->buffer[datos->indiceEmisor] = respuesta;
+
     datos->indiceEmisor++;
+    datos->indiceTxtEmisor++;
     datos->contEmisoresVivos--;
     datos->contEmisoresTotal++;
-
-    //printf("%-20d",datos->contEmisoresTotal);
-    printf("%-20d",datos->buffer[1]);
-    printf("\n");
 
     time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
     struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm
     printf("Fecha actual: %d/%d/%d\n", tiempo_local->tm_year + 1900, tiempo_local->tm_mon + 1, tiempo_local->tm_mday);
     printf("Hora actual: %d:%02d:%02d\n", tiempo_local->tm_hour, tiempo_local->tm_min, tiempo_local->tm_sec);
     
-    sem_wait(sem_vacios);
+
     return 0;
 }

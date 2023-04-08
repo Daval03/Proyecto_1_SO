@@ -12,10 +12,13 @@
 
 int main(int argc, char *argv[]){
 
-    // Valores compartidos
+    // Valores recibidos
     char *Modo;
     char *ID;
     int clave;
+
+    // Valor del textEmisor
+    char text;
 
     // Obtener los argumentos y convertir el número a entero
     Modo = argv[1];
@@ -49,6 +52,9 @@ int main(int argc, char *argv[]){
         perror("shmat");
         exit(1);
     }
+    
+    datos->TxtReceptor=fopen("Data/Receptor.txt","a");
+
     datos->contReceptoresVivos++;
 
     //Memoria circular
@@ -57,22 +63,29 @@ int main(int argc, char *argv[]){
     }
 
     sem_wait(sem_llenos);
-    //Mutex
+    sem_post(sem_vacios);
     
+    //Mutex
     /////////////////// Zona critica ////////////////////
+    char datoBuffer=datos->buffer[datos->indiceReceptor];
+    char respuesta = datoBuffer^clave;
 
-    //printf("\n");
-    //printf("%d",datos->contReceptoresVivos);
+    // Write char del puntero del indice del file 
+    text = fputc(respuesta,datos->TxtReceptor);
+
+    //Limpiar el buffer
+    datos->buffer[datos->indiceReceptor] = '_' ;
 
     datos->indiceReceptor++;
     datos->contReceptoresVivos--;
     datos->contReceptoresTotal++;
+
 
     time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
     struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm
     printf("Fecha actual: %d/%d/%d\n", tiempo_local->tm_year + 1900, tiempo_local->tm_mon + 1, tiempo_local->tm_mday);
     printf("Hora actual: %d:%02d:%02d\n", tiempo_local->tm_hour, tiempo_local->tm_min, tiempo_local->tm_sec);
 
-    sem_post(sem_vacios);
+
     return 0;
 }

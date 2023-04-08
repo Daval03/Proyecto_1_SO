@@ -39,6 +39,7 @@ int main(){
         perror("shmat");
         exit(1);
     }
+    
     int tempEmisores=datos->contEmisoresVivos;
     int tempReceptores=datos->contReceptoresVivos;
     
@@ -46,7 +47,7 @@ int main(){
     for (int i=0;i < datos->contEmisoresVivos; i++){
         datos->indiceEmisor=1;
         datos->indiceReceptor=1;
-        //Leemos algo
+        datos->buffer[datos->indiceEmisor]='_';
         sem_post(sem_vacios);
         sem_wait(sem_llenos);
         //Mutex
@@ -54,11 +55,14 @@ int main(){
     for (int i=0;i < datos->contReceptoresVivos; i++){
         datos->indiceEmisor=1;
         datos->indiceReceptor=1;
-        //Escribimos algo
+        datos->buffer[datos->indiceReceptor]='_';
         sem_post(sem_vacios);
         sem_wait(sem_llenos);
         //Mutex
     }
+
+
+
 
 
     // Cerramos semaforos

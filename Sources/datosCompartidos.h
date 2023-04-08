@@ -1,18 +1,12 @@
-#ifndef datosCompartidos
-#define datosCompartidos
-
 //Struct que vamos a emplear para guardar en la memoria compartida
 
 struct datosCompartida {
     int numeroEspacio;
-    int indiceEmisor, indiceReceptor, indiceTxtEmisor, indiceTxtReceptor;
+    int indiceEmisor, indiceReceptor, indiceTxtEmisor;
     int contEmisoresVivos, contReceptoresVivos;
     int contEmisoresTotal, contReceptoresTotal;
     char clave;
-    int buffer[256];
-    //char buffer[256];
-    //FILE * fileTxt;
-    //char fileTxtReceptor;
+    char buffer[5];
+    FILE *TxtEmisor;
+    FILE *TxtReceptor;
 };
-
-#endif /* datosCompartidos */

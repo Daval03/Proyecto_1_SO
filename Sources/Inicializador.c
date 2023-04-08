@@ -6,9 +6,9 @@
 #include <sys/shm.h>
 #include <errno.h>
 #include <semaphore.h>
+#include <time.h>
 #include <fcntl.h>            // Necesario para O_CREAT y O_EXCL
 #include "datosCompartidos.h" // Estructura
-#include <time.h>
 
 int main(int argc, char *argv[]) {
 
@@ -16,12 +16,6 @@ int main(int argc, char *argv[]) {
     char *ID;
     int clave;
     int numeroEspacio;
-
-    // Verificar que se hayan ingresado los 3 argumentos
-    if (argc != 4) {
-        printf("Uso: programa <string1> <numero1> <numero2>\n");
-        return 1;
-    }
 
     // Obtener los argumentos y convertir el número a entero
     ID = argv[1];
@@ -82,21 +76,12 @@ int main(int argc, char *argv[]) {
     datos->indiceEmisor=0;
     datos->indiceReceptor=0;
     datos->indiceTxtEmisor=0;
-    datos->indiceTxtReceptor=0;
+    datos->TxtReceptor=fopen("Data/Receptor.txt","w");
 
     printf("\n");
     printf("ID: %-20s\n", ID);
     printf("Clave:%-20d\n",datos->clave);
     printf("Numero de espacio:%-20d\n",datos->numeroEspacio );
-    
-    datos->buffer[0]=0;
-    datos->buffer[1]=1;
-    datos->buffer[2]=2;
-    datos->buffer[3]=3;
-    datos->buffer[4]=5;
-
-    printf("%-20d",datos->buffer[4]);
-    printf("\n");
 
     return 0;
 }
