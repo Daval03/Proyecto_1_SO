@@ -72,6 +72,7 @@ int main(int argc, char *argv[]){
     // Get char del puntero del indice del file 
     text = fgetc(datos->TxtEmisor);
     char respuesta= text^clave;
+    
     datos->buffer[datos->indiceEmisor] = respuesta;
 
     // Obtemos el tiempo
