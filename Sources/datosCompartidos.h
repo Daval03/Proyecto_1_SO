@@ -5,7 +5,8 @@ struct datosCompartida {
     int indiceEmisor, indiceReceptor, indiceTxtEmisor;
     int contEmisoresVivos, contReceptoresVivos;
     int contEmisoresTotal, contReceptoresTotal;
-    char clave;
+    int clave;
+    int endProcess;
     char buffer[5];
     FILE *TxtEmisor;
     FILE *TxtReceptor;

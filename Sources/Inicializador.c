@@ -28,8 +28,10 @@ int main(int argc, char *argv[]) {
     sem_unlink("/sem_mutexE");
     sem_unlink("/sem_mutexR");
 
+
     /* Inicializar semáforos */
     sem_t *sem_llenos, *sem_vacios, *sem_mutexE, *sem_mutexR;
+
 
     // Crear sem_llenos con nombre "sem_llenos" y un valor inicial de 0
     sem_llenos = sem_open("/sem_llenos", O_CREAT | O_EXCL, 0644, 0);
@@ -59,9 +61,9 @@ int main(int argc, char *argv[]) {
 
     // Inicializamos esta memoria compartida
     struct datosCompartida *datos;
-    
+
     // Crear una clave única para la memoria compartida
-    key_t key = ftok("Data/shmid.txt", *ID);
+    key_t key = ftok("tmp", *ID);
 
     size_t tamaño = sizeof(struct datosCompartida);
 
@@ -70,7 +72,8 @@ int main(int argc, char *argv[]) {
     if (shmid == -1) {
         perror("shmget");
         exit(1);
-    }   
+    }
+    
     // Asignar la estructura a la memoria compartida
     datos = shmat(shmid, NULL, 0);
     if (datos == (void *) -1) {
@@ -79,7 +82,6 @@ int main(int argc, char *argv[]) {
     }
 
     // Asignar valores a la estructura
-    //datos->buffer = malloc(numeroEspacio * sizeof(int));
     datos->clave = clave;
     datos->numeroEspacio = numeroEspacio;
     datos->contEmisoresTotal=0;
@@ -89,6 +91,7 @@ int main(int argc, char *argv[]) {
     datos->indiceEmisor=0;
     datos->indiceReceptor=0;
     datos->indiceTxtEmisor=0;
+    datos->endProcess=0;
     datos->TxtReceptor=fopen("Data/Receptor.txt","w");
 
     printf("\n");
