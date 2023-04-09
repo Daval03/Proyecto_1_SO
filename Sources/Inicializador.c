@@ -10,6 +10,8 @@
 #include <fcntl.h>            // Necesario para O_CREAT y O_EXCL
 #include "datosCompartidos.h" // Estructura
 
+
+
 int main(int argc, char *argv[]) {
 
     // Valores ingresados
@@ -98,5 +100,6 @@ int main(int argc, char *argv[]) {
     printf("| %-15s | %-10s | %-10s |\n", "ID", "Clave", "Numero de espacios");
     printf("| %-15s | %-10d | %-18d |\n", ID, clave, numeroEspacio);
     printf("\n");
+
     return 0;
 }

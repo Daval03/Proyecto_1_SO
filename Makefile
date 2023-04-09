@@ -12,10 +12,8 @@ compile:
 i:
 	./Bin/Inicializador "buffer1" 21 5
 e:
-	./Bin/Emisor "m" "buffer1" 21 10
+	./Bin/Emisor "a" "buffer1" 21 10
 r:
-	./Bin/Receptor "m" "buffer1" 21 10
-xd:
-	./Bin/Receptor "a" "buffer1" 21	5
-	./Bin/Emisor "m" "buffer1" 21 5
+	./Bin/Receptor "a" "buffer1" 21 1
+f:
 	./Bin/Finalizador

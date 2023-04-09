@@ -11,6 +11,7 @@
 #include <time.h>
 #include <unistd.h>
 
+void zonaCritica(struct datosCompartida* d,char clave);
 
 int main(int argc, char *argv[]){
     // Valores recibidos
@@ -20,7 +21,7 @@ int main(int argc, char *argv[]){
     int tiempo;
 
     // Valor del textEmisor
-    char text;
+
 
     // Obtener los argumentos y convertir el número a entero
     Modo = argv[1];
@@ -69,48 +70,13 @@ int main(int argc, char *argv[]){
         while (1){
             sleep(tiempo);
             if (datos->endProcess==0){
+
                 datos->contEmisoresVivos++;
-                
                 sem_wait(sem_vacios);
                 sem_wait(sem_mutexE);
-
                 /////////////////// Zona critica ////////////////////
-
-                //Memoria circular
-                if (datos->numeroEspacio==datos->indiceEmisor){
-                    datos->indiceEmisor=0;
-                }
-
-                // Movemos el puntero del file, al indice deseado. Aqui lo movemos a datos->indiceEmisor
-                fseek(datos->TxtEmisor, datos->indiceTxtEmisor, SEEK_SET);
-                
-                // Get char del puntero del indice del file 
-                text = fgetc(datos->TxtEmisor);
-                char respuesta= text^clave;
-                
-                datos->buffer[datos->indiceEmisor] = respuesta;
-
-                // Obtemos el tiempo
-                time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
-                struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm
-
-                // Print elegante
-                printf("\n \n");
-
-                printf("| %-15s | %-10s | %-10s | %-5s |\n", "Fecha actual", "Hora actual", "Índice", "Valor ASCII");
-                printf("| %02d/%02d/%d      | %02d:%02d:%02d    | %-10d| %-11c |\n",
-                        tiempo_local->tm_mday, tiempo_local->tm_mon + 1, tiempo_local->tm_year + 1900,
-                        tiempo_local->tm_hour, tiempo_local->tm_min, tiempo_local->tm_sec,
-                        datos->indiceEmisor, text);
-
-                printf("\n \n");
-
-                //Aumentar los indices
-                datos->indiceEmisor++;
-                datos->indiceTxtEmisor++;
-                datos->contEmisoresVivos--;
-                datos->contEmisoresTotal++;
-
+                zonaCritica(datos, clave);
+                /////////////////////////////////////////////////////
                 sem_post(sem_mutexE);
                 sem_post(sem_llenos);
             }else{
@@ -124,48 +90,14 @@ int main(int argc, char *argv[]){
             enter = getchar();
             if (enter==13 || enter==10){
                 if (datos->endProcess==0){
+                    
                     datos->contEmisoresVivos++;
-                    sem_wait(sem_vacios);//down
+                    sem_wait(sem_vacios);
                     sem_wait(sem_mutexE);
 
                     /////////////////// Zona critica ////////////////////
-
-
-                    //Memoria circular
-                    if (datos->numeroEspacio==datos->indiceEmisor){
-                        datos->indiceEmisor=0;
-                    }
-
-                    // Movemos el puntero del file, al indice deseado. Aqui lo movemos a datos->indiceEmisor
-                    fseek(datos->TxtEmisor, datos->indiceTxtEmisor, SEEK_SET);
-                    
-                    // Get char del puntero del indice del file 
-                    text = fgetc(datos->TxtEmisor);
-                    char respuesta= text^clave;
-                    
-                    datos->buffer[datos->indiceEmisor] = respuesta;
-
-                    // Obtemos el tiempo
-                    time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
-                    struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm
-
-                    // Print elegante
-                    printf("\n \n");
-
-                    printf("| %-15s | %-10s | %-10s | %-5s |\n", "Fecha actual", "Hora actual", "Índice", "Valor ASCII");
-                    printf("| %02d/%02d/%d      | %02d:%02d:%02d    | %-10d| %-11c |\n",
-                            tiempo_local->tm_mday, tiempo_local->tm_mon + 1, tiempo_local->tm_year + 1900,
-                            tiempo_local->tm_hour, tiempo_local->tm_min, tiempo_local->tm_sec,
-                            datos->indiceEmisor, text);
-
-                    printf("\n \n");
-
-                    //Aumentar los indices
-                    datos->indiceEmisor++;
-                    datos->indiceTxtEmisor++;
-                    datos->contEmisoresVivos--;
-                    datos->contEmisoresTotal++;
-
+                    zonaCritica(datos, clave);
+                    /////////////////////////////////////////////////////
                     sem_post(sem_mutexE);
                     sem_post(sem_llenos);
                 }else{
@@ -175,4 +107,45 @@ int main(int argc, char *argv[]){
         }
     }
     return 0;
+}
+
+void zonaCritica(struct datosCompartida* datos, char clave) {
+    if (datos->indiceEmisor != -1){
+        //Memoria circular
+        if (datos->numeroEspacio==datos->indiceEmisor){
+            datos->indiceEmisor=0;
+        }
+
+        // Movemos el puntero del file, al indice deseado. Aqui lo movemos a datos->indiceEmisor
+        fseek(datos->TxtEmisor, datos->indiceTxtEmisor, SEEK_SET);
+        
+        // Get char del puntero del indice del file 
+        char text = fgetc(datos->TxtEmisor);
+        char respuesta= text^clave;
+        
+        datos->buffer[datos->indiceEmisor] = respuesta;
+
+        // Obtemos el tiempo
+        time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
+        struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm
+
+        // Print elegante
+        printf("\n \n");
+
+        printf("| %-15s | %-10s | %-10s | %-5s |\n", "Fecha actual", "Hora actual", "Índice", "Valor ASCII");
+        printf("| %02d/%02d/%d      | %02d:%02d:%02d    | %-10d| %-11c |\n",
+                tiempo_local->tm_mday, tiempo_local->tm_mon + 1, tiempo_local->tm_year + 1900,
+                tiempo_local->tm_hour, tiempo_local->tm_min, tiempo_local->tm_sec,
+                datos->indiceEmisor, text);
+
+        printf("\n \n");
+
+        //Aumentar los indices
+        datos->indiceEmisor++;
+        datos->indiceTxtEmisor++;
+        datos->contEmisoresVivos--;
+        datos->contEmisoresTotal++;
+    }else{
+        datos->contEmisoresVivos--;
+    }return;
 }

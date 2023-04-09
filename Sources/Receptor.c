@@ -11,6 +11,8 @@
 #include <time.h>
 #include <unistd.h>
 
+void zonaCritica(struct datosCompartida* d,char clave);
+
 int main(int argc, char *argv[]){
 
     // Valores recibidos
@@ -62,48 +64,12 @@ int main(int argc, char *argv[]){
         while (1){
             sleep(tiempo);
             if (datos->endProcess==0){
-
                 datos->contReceptoresVivos++;
                 sem_wait(sem_llenos);
                 sem_wait(sem_mutexR);
-                
                 /////////////////// Zona critica ////////////////////
-
-                //Memoria circular
-                if (datos->numeroEspacio==datos->indiceReceptor){
-                    datos->indiceReceptor=0;
-                }
-
-                // Sacamos el valor del buffer
-                char datoBuffer = datos->buffer[datos->indiceReceptor];
-                char respuesta = datoBuffer^clave;
-
-                // Write char del puntero del indice del file 
-                text = fputc(respuesta,datos->TxtReceptor);
-
-                //Limpiar el buffer
-                datos->buffer[datos->indiceReceptor] = '\0';
-
-                // Obtemos el tiempo
-                time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
-                struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm
-
-                // Print elegante
-                printf("\n \n");
-
-                printf("| %-15s | %-10s | %-10s | %-5s |\n", "Fecha actual", "Hora actual", "Índice", "Valor ASCII");
-                printf("| %02d/%02d/%d      | %02d:%02d:%02d    | %-10d| %-11c |\n",
-                        tiempo_local->tm_mday, tiempo_local->tm_mon + 1, tiempo_local->tm_year + 1900,
-                        tiempo_local->tm_hour, tiempo_local->tm_min, tiempo_local->tm_sec,
-                        datos->indiceReceptor, respuesta);
-
-                printf("\n \n");
-
-                //Aumentar los indices
-                datos->indiceReceptor++;
-                datos->contReceptoresVivos--;
-                datos->contReceptoresTotal++;
-                
+                zonaCritica(datos, clave);
+                /////////////////////////////////////////////////////
                 sem_post(sem_mutexR);
                 sem_post(sem_vacios);
             }else{
@@ -122,42 +88,8 @@ int main(int argc, char *argv[]){
                     sem_wait(sem_mutexR);
                     
                     /////////////////// Zona critica ////////////////////
-
-                    //Memoria circular
-                    if (datos->numeroEspacio==datos->indiceReceptor){
-                        datos->indiceReceptor=0;
-                    }
-
-                    // Sacamos el valor del buffer
-                    char datoBuffer = datos->buffer[datos->indiceReceptor];
-                    char respuesta = datoBuffer^clave;
-
-                    // Write char del puntero del indice del file 
-                    text = fputc(respuesta,datos->TxtReceptor);
-
-                    //Limpiar el buffer
-                    datos->buffer[datos->indiceReceptor] = '\0';
-
-                    // Obtemos el tiempo
-                    time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
-                    struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm
-
-                    // Print elegante
-                    printf("\n \n");
-
-                    printf("| %-15s | %-10s | %-10s | %-5s |\n", "Fecha actual", "Hora actual", "Índice", "Valor ASCII");
-                    printf("| %02d/%02d/%d      | %02d:%02d:%02d    | %-10d| %-11c |\n",
-                            tiempo_local->tm_mday, tiempo_local->tm_mon + 1, tiempo_local->tm_year + 1900,
-                            tiempo_local->tm_hour, tiempo_local->tm_min, tiempo_local->tm_sec,
-                            datos->indiceReceptor, respuesta);
-
-                    printf("\n \n");
-
-                    //Aumentar los indices
-                    datos->indiceReceptor++;
-                    datos->contReceptoresVivos--;
-                    datos->contReceptoresTotal++;
-                    
+                    zonaCritica(datos, clave);
+                    /////////////////////////////////////////////////////
                     sem_post(sem_mutexR);
                     sem_post(sem_vacios);
                 }else{
@@ -167,4 +99,46 @@ int main(int argc, char *argv[]){
         }
     }
     return 0;
+}
+
+
+void zonaCritica(struct datosCompartida* datos, char clave) {
+    if (datos->indiceReceptor != -1){
+        //Memoria circular
+        if (datos->numeroEspacio==datos->indiceReceptor){
+            datos->indiceReceptor=0;
+        }
+
+        // Sacamos el valor del buffer
+        char datoBuffer = datos->buffer[datos->indiceReceptor];
+        char respuesta = datoBuffer^clave;
+
+        // Write char del puntero del indice del file 
+        char text = fputc(respuesta,datos->TxtReceptor);
+
+        //Limpiar el buffer
+        datos->buffer[datos->indiceReceptor] = '\0';
+
+        // Obtemos el tiempo
+        time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
+        struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm
+
+        // Print elegante
+        printf("\n \n");
+
+        printf("| %-15s | %-10s | %-10s | %-5s |\n", "Fecha actual", "Hora actual", "Índice", "Valor ASCII");
+        printf("| %02d/%02d/%d      | %02d:%02d:%02d    | %-10d| %-11c |\n",
+                tiempo_local->tm_mday, tiempo_local->tm_mon + 1, tiempo_local->tm_year + 1900,
+                tiempo_local->tm_hour, tiempo_local->tm_min, tiempo_local->tm_sec,
+                datos->indiceReceptor, respuesta);
+
+        printf("\n \n");
+
+        //Aumentar los indices
+        datos->indiceReceptor++;
+        datos->contReceptoresVivos--;
+        datos->contReceptoresTotal++;
+    }else{
+        datos->contReceptoresVivos--;
+    }return;
 }
