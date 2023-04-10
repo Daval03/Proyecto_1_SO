@@ -136,11 +136,19 @@ void zonaCritica(struct datosCompartida* datos, char clave, FILE* TxtReceptor, F
         // escribir la info en el log file, se escribe una linea al final del archivo
         char infoFormato[] = "%d-%c    | %c           |  %d       | %s \n";
 
-        // Print elegante
-        printf("\n %s \n", fechaActual);
         fprintf(logFile, infoFormato, getpid(),'R', text, datos->indiceReceptor, fechaActual);
+
+        // Print elegante
+        printf("\n");
+
+        printf("\033[1;34m"); // Cambiar color del texto a azul brillante
+        printf("| %-21s | %-11s | %-5s |\n", "Fecha-Hora", "Índice", "Valor ASCII");
+        printf("| %-15s | %-10d | %-11c |\n", fechaActual, datos->indiceReceptor, text);
+        printf("\033[0m"); // Restablecer color del texto a su valor predeterminado
+
+        printf("\n");  
+
         fflush(logFile);
-        printf("\n \n");
         free(fechaActual);
 
         //Aumentar los indices
@@ -159,6 +167,6 @@ char* getFechaHora(){
     int mins = tiempo_local->tm_min;
     int secs = tiempo_local->tm_sec;
     char* result = (char*)malloc(20*sizeof(int));
-    sprintf(result, "%04d/%02d/%02d : %d:%02d:%02d\n", year, mes, dia, hora, mins, secs);
+    sprintf(result, "%04d/%02d/%02d : %d:%02d:%02d", year, mes, dia, hora, mins, secs);
     return result;
 }

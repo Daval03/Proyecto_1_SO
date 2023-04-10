@@ -1,1 +1,3 @@
-PID-E/R    | Caracter    | Index    | Date     
+PID-E/R    | Caracter    | Index    | Date    
+16317-E    | H           |  0       | 2023/04/09 : 19:40:52 
+16317-E    | o           |  1       | 2023/04/09 : 19:40:52 

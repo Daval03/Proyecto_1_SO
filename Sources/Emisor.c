@@ -135,12 +135,19 @@ void zonaCritica(struct datosCompartida* datos, char clave, FILE*TxtEmisor, FILE
         
         // escribir la info en el log file, se escribe una linea al final del archivo
         char infoFormato[] = "%d-%c    | %c           |  %d       | %s \n";
+        //Ponemos la info en el Logfile
+        fprintf(logFile, infoFormato, getpid(),'E', text, datos->indiceEmisor, fechaActual);
 
         // Print elegante
-        printf("\n %s \n", fechaActual);
+        printf("\n");
+        
+        printf("\033[1;31m"); // Cambiar color del texto a rojo brillante
+        printf("| %-21s | %-11s | %-5s |\n", "Fecha-Hora", "Índice", "Valor ASCII");
+        printf("| %-15s | %-10d | %-11c |\n", fechaActual, datos->indiceEmisor, text);
+        printf("\033[0m"); // Restablecer color del texto a su valor predeterminado
+        
+        printf("\n");
 
-        fprintf(logFile, infoFormato, getpid(),'E', text, datos->indiceEmisor, fechaActual);
-        printf("\n \n");
         fflush(logFile);
         free(fechaActual);
 
@@ -159,7 +166,7 @@ char* getFechaHora(){
     int hora = tiempo_local->tm_hour;
     int mins = tiempo_local->tm_min;
     int secs = tiempo_local->tm_sec;
-    char* result = (char*)malloc(20*sizeof(int));
-    sprintf(result, "%04d/%02d/%02d : %d:%02d:%02d\n", year, mes, dia, hora, mins, secs);
+    char* result = (char*)malloc(8*sizeof(int));
+    sprintf(result, "%04d/%02d/%02d : %d:%02d:%02d", year, mes, dia, hora, mins, secs);
     return result;
 }

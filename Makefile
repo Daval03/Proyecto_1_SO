@@ -1,7 +1,6 @@
 run:
 	./Bin/Inicializador "buffer1" 21 5
 	./Bin/Emisor "m" "buffer1" 21 10
-	./Bin/Receptor "m" "buffer1" 21 10
 	
 compile:
 	gcc Sources/Inicializador.c -o Bin/Inicializador -fsanitize=address -lrt -lpthread

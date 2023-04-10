@@ -120,8 +120,10 @@ int main(int argc, char *argv[]) {
     datos->endProcess=0;
 
     printf("\n");
+    printf("\033[1;36m"); // Cambiar color del texto a cyan brillante
     printf("| %-15s | %-10s | %-10s |\n", "ID", "Clave", "Numero de espacios");
     printf("| %-15s | %-10d | %-18d |\n", ID, clave, numeroEspacio);
+    printf("\033[0m"); // Restablecer color del texto a su valor predeterminado
     printf("\n");
 
      //--- debug
