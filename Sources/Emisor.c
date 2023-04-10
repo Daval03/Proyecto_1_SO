@@ -11,7 +11,8 @@
 #include <time.h>
 #include <unistd.h>
 
-void zonaCritica(struct datosCompartida* d,char clave);
+void zonaCritica(struct datosCompartida* d,char clave, FILE*TxtEmisor,  FILE* logFile);
+char* getFechaHora();
 
 int main(int argc, char *argv[]){
     // Valores recibidos
@@ -19,9 +20,6 @@ int main(int argc, char *argv[]){
     char *ID;
     int clave;
     int tiempo;
-
-    // Valor del textEmisor
-
 
     // Obtener los argumentos y convertir el número a entero
     Modo = argv[1];
@@ -57,28 +55,33 @@ int main(int argc, char *argv[]){
         perror("shmat");
         exit(1);
     }
-    //Memoria circular
-    if (datos->numeroEspacio==datos->indiceEmisor){
-        datos->indiceEmisor=0;
-    }
-    
+
     //Instanciar los txt
-    datos->TxtEmisor=fopen("Data/Emisor.txt", "r");
+    FILE *TxtEmisor=fopen("Data/Emisor.txt", "r");
     
+    // Direccion del archivo que contiene informacion de las operaciones
+    //"a+": Si el archivo no existe, lo construye
+    FILE* logFile;
+    logFile = fopen("Data/log.txt", "a");
+    if (logFile == NULL) {
+        perror("Error al abrir el log .txt");
+        exit(1);
+    }
+
     //Modo de uso
     if (strcmp(Modo,"a")==0){
         while (1){
             sleep(tiempo);
             if (datos->endProcess==0){
-
                 datos->contEmisoresVivos++;
                 sem_wait(sem_vacios);
                 sem_wait(sem_mutexE);
                 /////////////////// Zona critica ////////////////////
-                zonaCritica(datos, clave);
+                zonaCritica(datos, clave, TxtEmisor, logFile);
                 /////////////////////////////////////////////////////
                 sem_post(sem_mutexE);
                 sem_post(sem_llenos);
+                datos->contEmisoresVivos--;
             }else{
                 break;
             }
@@ -90,62 +93,73 @@ int main(int argc, char *argv[]){
             enter = getchar();
             if (enter==13 || enter==10){
                 if (datos->endProcess==0){
-                    
                     datos->contEmisoresVivos++;
+
                     sem_wait(sem_vacios);
                     sem_wait(sem_mutexE);
-
                     /////////////////// Zona critica ////////////////////
-                    zonaCritica(datos, clave);
+                    zonaCritica(datos, clave, TxtEmisor, logFile);
                     /////////////////////////////////////////////////////
                     sem_post(sem_mutexE);
                     sem_post(sem_llenos);
+                    
+                    datos->contEmisoresVivos--;
                 }else{
                     break;
                 }
             }
         }
     }
+    fclose(logFile);
+    fclose(TxtEmisor);
     return 0;
 }
 
-void zonaCritica(struct datosCompartida* datos, char clave) {
+void zonaCritica(struct datosCompartida* datos, char clave, FILE*TxtEmisor, FILE* logFile) {
     if (datos->indiceEmisor != -1){
         //Memoria circular
         if (datos->numeroEspacio==datos->indiceEmisor){
             datos->indiceEmisor=0;
         }
-
         // Movemos el puntero del file, al indice deseado. Aqui lo movemos a datos->indiceEmisor
-        fseek(datos->TxtEmisor, datos->indiceTxtEmisor, SEEK_SET);
-        
+        fseek(TxtEmisor, datos->indiceTxtEmisor, SEEK_SET);
+
         // Get char del puntero del indice del file 
-        char text = fgetc(datos->TxtEmisor);
-        char respuesta= text^clave;
-        
+        char text = fgetc(TxtEmisor);
+        //XOR
+        char respuesta = text^clave;
+
         datos->buffer[datos->indiceEmisor] = respuesta;
 
-        // Obtemos el tiempo
-        time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
-        struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm
+        char* fechaActual = getFechaHora(); // call the function to get the string
+        
+        // escribir la info en el log file, se escribe una linea al final del archivo
+        char infoFormato[] = "%d-%c    | %c           |  %d       | %s \n";
 
         // Print elegante
-        printf("\n \n");
+        printf("\n %s \n", fechaActual);
 
-        printf("| %-15s | %-10s | %-10s | %-5s |\n", "Fecha actual", "Hora actual", "Índice", "Valor ASCII");
-        printf("| %02d/%02d/%d      | %02d:%02d:%02d    | %-10d| %-11c |\n",
-                tiempo_local->tm_mday, tiempo_local->tm_mon + 1, tiempo_local->tm_year + 1900,
-                tiempo_local->tm_hour, tiempo_local->tm_min, tiempo_local->tm_sec,
-                datos->indiceEmisor, text);
-
+        fprintf(logFile, infoFormato, getpid(),'E', text, datos->indiceEmisor, fechaActual);
         printf("\n \n");
+        fflush(logFile);
+        free(fechaActual);
 
         //Aumentar los indices
         datos->indiceEmisor++;
         datos->indiceTxtEmisor++;
-        datos->contEmisoresVivos--;
         datos->contEmisoresTotal++;
-    }else{
-        datos->contEmisoresVivos--;
     }return;
+}
+char* getFechaHora(){
+    time_t tiempo_actual = time(NULL);
+    struct tm *tiempo_local = localtime(&tiempo_actual);
+    int year = tiempo_local->tm_year + 1900;
+    int mes = tiempo_local->tm_mon + 1;
+    int dia = tiempo_local->tm_mday;
+    int hora = tiempo_local->tm_hour;
+    int mins = tiempo_local->tm_min;
+    int secs = tiempo_local->tm_sec;
+    char* result = (char*)malloc(20*sizeof(int));
+    sprintf(result, "%04d/%02d/%02d : %d:%02d:%02d\n", year, mes, dia, hora, mins, secs);
+    return result;
 }

@@ -10,7 +10,7 @@ compile:
 	gcc Sources/Finalizador.c -o Bin/Finalizador -lrt -lpthread
 
 i:
-	./Bin/Inicializador "buffer1" 21 5
+	./Bin/Inicializador "buffer1" 21 80
 e:
 	./Bin/Emisor "a" "buffer1" 21 10
 r:

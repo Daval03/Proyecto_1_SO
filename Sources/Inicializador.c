@@ -9,7 +9,7 @@
 #include <time.h>
 #include <fcntl.h>            // Necesario para O_CREAT y O_EXCL
 #include "datosCompartidos.h" // Estructura
-
+#include <unistd.h>
 
 
 int main(int argc, char *argv[]) {
@@ -67,10 +67,14 @@ int main(int argc, char *argv[]) {
     // Crear una clave única para la memoria compartida
     key_t key = ftok("tmp", *ID);
 
-    size_t tamaño = sizeof(struct datosCompartida);
+    // size de la estructura de datos
+    size_t strucTamano = sizeof(struct datosCompartida);
+
+    // size del buffer
+    size_t bufferTamano = numeroEspacio * sizeof(char);
 
     // Crear la memoria compartida
-    int shmid = shmget(key, tamaño, 0666 | IPC_CREAT);
+    int shmid = shmget(key, strucTamano+bufferTamano, 0666 | IPC_CREAT);
     if (shmid == -1) {
         perror("shmget");
         exit(1);
@@ -83,6 +87,26 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    //ReceptorFile
+    FILE* textReceptor;
+    textReceptor = fopen("Data/Receptor.txt", "w");
+    fclose(textReceptor);
+
+    //LogFile
+    FILE* logFile;
+    // clear the content of the file
+    logFile = fopen("Data/log.txt", "w");
+    fclose(logFile);
+    // write headers to log file
+    logFile = fopen("Data/log.txt", "a");
+    if (logFile == NULL) {
+        perror("Error al abrir el log .txt");
+        exit(1);
+    }
+    char infoFormato[] = "%s    | %s    | %s    | %s    \n";
+    fprintf(logFile, infoFormato, "PID-E/R", "Caracter", "Index", "Date");
+    fclose(logFile);
+
     // Asignar valores a la estructura
     datos->clave = clave;
     datos->numeroEspacio = numeroEspacio;
@@ -94,12 +118,27 @@ int main(int argc, char *argv[]) {
     datos->indiceReceptor=0;
     datos->indiceTxtEmisor=0;
     datos->endProcess=0;
-    datos->TxtReceptor=fopen("Data/Receptor.txt","w");
 
     printf("\n");
     printf("| %-15s | %-10s | %-10s |\n", "ID", "Clave", "Numero de espacios");
     printf("| %-15s | %-10d | %-18d |\n", ID, clave, numeroEspacio);
     printf("\n");
+
+     //--- debug
+    struct shmid_ds segment_info;
+    shmctl(shmid, IPC_STAT, &segment_info);
+    printf("Current size of shared memory segment: %ld\n", segment_info.shm_segsz);
+    printf("\n");
+    printf("No. of current attaches: %ld\n", segment_info.shm_nattch);
+    printf("\n");
+    printf("Owner: %d. My PID: %d\n", segment_info.shm_cpid, getpid());
+    /// -----
+
+    // desasignar del segmento compartido
+    if (shmdt(datos) == -1) { 
+        perror("Error eliminando asignacion del seg compartido");
+        return 1;
+    }
 
     return 0;
 }

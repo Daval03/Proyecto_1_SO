@@ -11,8 +11,6 @@
 #include <time.h>
 #include <unistd.h>
 
-
-
 int main(){
 
     // Inicializamos esta memoria compartida
@@ -75,6 +73,14 @@ int main(){
     sem_unlink("/sem_mutexR");
 
     //Liberamos el espacio de memoria
-    shmdt(datos);
+    if (shmdt(datos) == -1) {  // desasignar del segmento compartido
+        perror("Error eliminando asignacion del seg compartido");
+        return 1;
+    }
+    if (shmctl(shmid, IPC_RMID, NULL) < 0) {    //remover bloque shm
+        perror("Error removiendo el bloque de mem compartida");
+        exit(1);
+    }
+
     return 0;
 }

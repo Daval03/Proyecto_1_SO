@@ -11,7 +11,8 @@
 #include <time.h>
 #include <unistd.h>
 
-void zonaCritica(struct datosCompartida* d,char clave);
+void zonaCritica(struct datosCompartida* d,char clave, FILE* TxtReceptor, FILE* logFile);
+char* getFechaHora();
 
 int main(int argc, char *argv[]){
 
@@ -57,8 +58,16 @@ int main(int argc, char *argv[]){
         perror("shmat");
         exit(1);
     }
-    datos->TxtReceptor=fopen("Data/Receptor.txt","a");
-    
+    FILE* TxtReceptor=fopen("Data/Receptor.txt","a");
+
+    // Direccion del archivo que contiene informacion de las operaciones
+    //"a+": Si el archivo no existe, lo construye
+    FILE* logFile;
+    logFile = fopen("Data/log.txt", "a");
+    if (logFile == NULL) {
+        perror("Error al abrir el log .txt");
+        exit(1);
+    }
     //Modo de uso
     if (strcmp(Modo,"a")==0){
         while (1){
@@ -68,10 +77,11 @@ int main(int argc, char *argv[]){
                 sem_wait(sem_llenos);
                 sem_wait(sem_mutexR);
                 /////////////////// Zona critica ////////////////////
-                zonaCritica(datos, clave);
+                zonaCritica(datos, clave,TxtReceptor, logFile);
                 /////////////////////////////////////////////////////
                 sem_post(sem_mutexR);
                 sem_post(sem_vacios);
+                datos->contReceptoresVivos--;
             }else{
                 break;
             }
@@ -86,23 +96,25 @@ int main(int argc, char *argv[]){
                     datos->contReceptoresVivos++;
                     sem_wait(sem_llenos);
                     sem_wait(sem_mutexR);
-                    
                     /////////////////// Zona critica ////////////////////
-                    zonaCritica(datos, clave);
+                    zonaCritica(datos, clave, TxtReceptor, logFile);
                     /////////////////////////////////////////////////////
                     sem_post(sem_mutexR);
                     sem_post(sem_vacios);
+                    datos->contReceptoresVivos--;
                 }else{
                     break;
                 }
              }
         }
     }
+    fclose(TxtReceptor);
+    fclose(logFile);
     return 0;
 }
 
 
-void zonaCritica(struct datosCompartida* datos, char clave) {
+void zonaCritica(struct datosCompartida* datos, char clave, FILE* TxtReceptor, FILE* logFile) {
     if (datos->indiceReceptor != -1){
         //Memoria circular
         if (datos->numeroEspacio==datos->indiceReceptor){
@@ -114,31 +126,39 @@ void zonaCritica(struct datosCompartida* datos, char clave) {
         char respuesta = datoBuffer^clave;
 
         // Write char del puntero del indice del file 
-        char text = fputc(respuesta,datos->TxtReceptor);
+        char text = fputc(respuesta,TxtReceptor);
 
         //Limpiar el buffer
         datos->buffer[datos->indiceReceptor] = '\0';
 
-        // Obtemos el tiempo
-        time_t tiempo_actual = time(NULL);                    // Obtenemos el tiempo actual en segundos
-        struct tm *tiempo_local = localtime(&tiempo_actual);  // Convertimos el tiempo en una estructura tm
+        char* fechaActual = getFechaHora(); // call the function to get the string
+        
+        // escribir la info en el log file, se escribe una linea al final del archivo
+        char infoFormato[] = "%d-%c    | %c           |  %d       | %s \n";
 
         // Print elegante
+        printf("\n %s \n", fechaActual);
+        fprintf(logFile, infoFormato, getpid(),'R', text, datos->indiceReceptor, fechaActual);
+        fflush(logFile);
         printf("\n \n");
-
-        printf("| %-15s | %-10s | %-10s | %-5s |\n", "Fecha actual", "Hora actual", "Índice", "Valor ASCII");
-        printf("| %02d/%02d/%d      | %02d:%02d:%02d    | %-10d| %-11c |\n",
-                tiempo_local->tm_mday, tiempo_local->tm_mon + 1, tiempo_local->tm_year + 1900,
-                tiempo_local->tm_hour, tiempo_local->tm_min, tiempo_local->tm_sec,
-                datos->indiceReceptor, respuesta);
-
-        printf("\n \n");
+        free(fechaActual);
 
         //Aumentar los indices
         datos->indiceReceptor++;
-        datos->contReceptoresVivos--;
         datos->contReceptoresTotal++;
-    }else{
-        datos->contReceptoresVivos--;
     }return;
+}
+
+char* getFechaHora(){
+    time_t tiempo_actual = time(NULL);
+    struct tm *tiempo_local = localtime(&tiempo_actual);
+    int year = tiempo_local->tm_year + 1900;
+    int mes = tiempo_local->tm_mon + 1;
+    int dia = tiempo_local->tm_mday;
+    int hora = tiempo_local->tm_hour;
+    int mins = tiempo_local->tm_min;
+    int secs = tiempo_local->tm_sec;
+    char* result = (char*)malloc(20*sizeof(int));
+    sprintf(result, "%04d/%02d/%02d : %d:%02d:%02d\n", year, mes, dia, hora, mins, secs);
+    return result;
 }
