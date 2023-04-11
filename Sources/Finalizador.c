@@ -20,6 +20,7 @@ typedef struct estadisticas
 } estadisticas;
 
 void extraerEstadisticas(estadisticas *estadisticasFinales, struct datosCompartida* datos);
+void contarCaracteres(estadisticas *estadisticasFinales, struct datosCompartida* datos);
 
 int main(){
 
@@ -73,13 +74,10 @@ int main(){
     //Memoria total utilizada
     shmctl(shmid, IPC_STAT, &memoriaTotal);
     
-
-    
     /*----------------------Terminar los receptores en cola----------------------*/
     int flag = 1;
    
     while (datos->contReceptoresVivos > 0){
-        flag = 1;
         sem_wait(sem_vacios);
         datos->indiceReceptor = -1;
         sem_post(sem_llenos);
@@ -122,6 +120,7 @@ int main(){
     sem_unlink("/sem_mutexR");
 
     /*----------------------Imprimimos las estadisticas---------------------*/
+    contarCaracteres(estadisticasFinales,datos);
     printf("\n");
     printf("\033[0;36m");
     printf("Caracteres transferidos:            %-25d \n", estadisticasFinales->transferidos);
@@ -149,14 +148,8 @@ int main(){
 }
 
 void extraerEstadisticas(estadisticas *estadisticasFinales, struct datosCompartida* datos)
-{   FILE* TextoReceptor=fopen("Data/Receptor.txt","r");
+{   
     int buffer_len = datos->numeroEspacio;
-    char ch;
-    //    caracteres transferidos
-    while ((ch=fgetc(TextoReceptor)) != EOF){
-        estadisticasFinales->transferidos ++;
-    }
-    fclose(TextoReceptor);
     
     //    cantidad de caracteres en memoria compartida
     for (int i = 0; i < buffer_len; i++)
@@ -172,4 +165,16 @@ void extraerEstadisticas(estadisticas *estadisticasFinales, struct datosComparti
     
     return;
 }
+
+void contarCaracteres(estadisticas *estadisticasFinales, struct datosCompartida* datos){
+    FILE* TextoReceptor = fopen("Data/Receptor.txt","r");
+    char ch;
+    //    caracteres transferidos
+    while ((ch=fgetc(TextoReceptor)) != EOF){
+        estadisticasFinales->transferidos ++;
+    }
+    fclose(TextoReceptor);
+    return;
+}
+
 
