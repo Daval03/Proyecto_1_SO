@@ -71,9 +71,9 @@ int main(int argc, char *argv[]){
     //Modo de uso
     if (strcmp(Modo,"a")==0){
         while (1){
-            sleep(tiempo);
             if (datos->endProcess==0){
                 datos->contEmisoresVivos++;
+                sleep(tiempo);
                 sem_wait(sem_vacios);
                 sem_wait(sem_mutexE);
                 /////////////////// Zona critica ////////////////////
@@ -94,7 +94,6 @@ int main(int argc, char *argv[]){
             if (enter==13 || enter==10){
                 if (datos->endProcess==0){
                     datos->contEmisoresVivos++;
-
                     sem_wait(sem_vacios);
                     sem_wait(sem_mutexE);
                     /////////////////// Zona critica ////////////////////

@@ -45,27 +45,50 @@ int main(){
     }
 
     datos->endProcess = 1;
-    int tempReceptores = datos->contReceptoresVivos;
-    int casoInicial=1;
 
-    printf("\n %d \n", tempReceptores);
+    int tempReceptores = datos->contReceptoresVivos;
+    int tempEmisores = datos->contEmisoresVivos;
+
     
     //Terminar los receptores en cola
-    for (int i=0; i < datos->contReceptoresVivos;i++){
+    int flag=1;
+    //tempReceptores == datos->contReceptoresVivos
+    while (datos->contReceptoresVivos > 0){
+        flag=1;
         sem_wait(sem_vacios);
         datos->indiceReceptor = -1;
         sem_post(sem_llenos);
-        sleep(5);
+        //Esperar a los N receptores
+        while(flag){
+            if(tempReceptores != datos->contReceptoresVivos){
+                printf("\n %d \n", tempReceptores);
+                tempReceptores = datos->contReceptoresVivos;
+                flag=0;
+            }
+        }
+        if(tempReceptores == 0){
+            break;
+        }
     }
-
     //Terminar los emisores en cola
-    for (int i=0; i < datos->contEmisoresVivos;i++){
+    flag=1;
+    while (datos->contEmisoresVivos > 0){
+        flag=1;
         sem_wait(sem_llenos);
         datos->indiceEmisor= -1;
         sem_post(sem_vacios);
-        sleep(5);
-    }
+        //Esperar a los N receptores
+        while(flag){
+            if(tempEmisores != datos->contEmisoresVivos){
 
+                tempEmisores = datos->contEmisoresVivos;
+                flag=0;
+            }
+        }
+        if(tempEmisores==0){
+            break;
+        }
+    }
     // Cerramos semaforos
     sem_unlink("/sem_vacios");
     sem_unlink("/sem_llenos");

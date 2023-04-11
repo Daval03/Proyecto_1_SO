@@ -141,6 +141,7 @@ int main(int argc, char *argv[]) {
         perror("Error eliminando asignacion del seg compartido");
         return 1;
     }
+    //ipcrm -M 0xffffffff
 
     return 0;
 }
