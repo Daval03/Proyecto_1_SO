@@ -6,7 +6,7 @@ compile:
 	gcc Sources/Inicializador.c -o Bin/Inicializador -fsanitize=address -lrt -lpthread
 	gcc Sources/Emisor.c -o Bin/Emisor -fsanitize=address -lrt -lpthread
 	gcc Sources/Receptor.c -o Bin/Receptor -fsanitize=address -lrt -lpthread 
-	gcc Sources/Finalizador.c -o Bin/Finalizador -lrt -lpthread
+	gcc Sources/Finalizador.c -o Bin/Finalizador -fsanitize=address -lrt -lpthread
 
 i:
 	./Bin/Inicializador "buffer1" 21 80

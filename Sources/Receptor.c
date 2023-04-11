@@ -43,10 +43,10 @@ int main(int argc, char *argv[]){
     // Crear una clave única para la memoria compartida
     key_t key = ftok("tmp", *ID);
     
-    size_t tamaño = sizeof(struct datosCompartida);
+    size_t tamano = sizeof(struct datosCompartida);
     
     // Copiamos la memoria compartida
-    int shmid = shmget(key, tamaño, 0666 | IPC_CREAT);
+    int shmid = shmget(key, tamano, 0666 | IPC_CREAT);
     if (shmid == -1) {
         perror("shmget");
         exit(1);
@@ -73,6 +73,7 @@ int main(int argc, char *argv[]){
         while (1){
             if (datos->endProcess==0){
                 datos->contReceptoresVivos++;
+                
                 sleep(tiempo);
                 sem_wait(sem_llenos);
                 sem_wait(sem_mutexR);
@@ -154,7 +155,10 @@ void zonaCritica(struct datosCompartida* datos, char clave, FILE* TxtReceptor, F
         //Aumentar los indices
         datos->indiceReceptor++;
         datos->contReceptoresTotal++;
-    }return;
+        return;
+    }
+    datos->contReceptoresTotal++;
+    return;
 }
 
 char* getFechaHora(){

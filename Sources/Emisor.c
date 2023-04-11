@@ -40,10 +40,10 @@ int main(int argc, char *argv[]){
     //key_t key = ftok("Data/shmid.txt", *ID);
     key_t key = ftok("tmp", *ID);
     
-    size_t tamaño = sizeof(struct datosCompartida);
+    size_t tamano = sizeof(struct datosCompartida);
     
     // Copiamos la memoria compartida
-    int shmid = shmget(key, tamaño, 0666 | IPC_CREAT);
+    int shmid = shmget(key, tamano, 0666 | IPC_CREAT);
     if (shmid == -1) {
         perror("shmget");
         exit(1);
@@ -154,7 +154,10 @@ void zonaCritica(struct datosCompartida* datos, char clave, FILE*TxtEmisor, FILE
         datos->indiceEmisor++;
         datos->indiceTxtEmisor++;
         datos->contEmisoresTotal++;
-    }return;
+        return;
+    }
+    datos->contEmisoresTotal++;
+    return;
 }
 char* getFechaHora(){
     time_t tiempo_actual = time(NULL);
