@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
         perror("Error al abrir el log .txt");
         exit(1);
     }
-
+    datos->contEmisoresTotal++;
     //Modo de uso
     if (strcmp(Modo,"a")==0){
         while (1){
@@ -89,7 +89,10 @@ int main(int argc, char *argv[]){
     }
     char enter;
     if (strcmp(Modo,"m")==0){
+        
         while(1){
+            
+            printf("Presione enter para continuar...\n");
             enter = getchar();
             if (enter==13 || enter==10){
                 if (datos->endProcess==0){
@@ -153,10 +156,7 @@ void zonaCritica(struct datosCompartida* datos, char clave, FILE*TxtEmisor, FILE
         //Aumentar los indices
         datos->indiceEmisor++;
         datos->indiceTxtEmisor++;
-        datos->contEmisoresTotal++;
-        return;
     }
-    datos->contEmisoresTotal++;
     return;
 }
 char* getFechaHora(){

@@ -16,7 +16,6 @@ typedef struct estadisticas
     int transferidos, enMemCompartida;
     int emisoresVivos, emisoresTotales;
     int receptoresVivos, receptoresTotales;
-    
 } estadisticas;
 
 void extraerEstadisticas(estadisticas *estadisticasFinales, struct datosCompartida* datos);
