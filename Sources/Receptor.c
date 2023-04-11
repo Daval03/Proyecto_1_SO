@@ -137,7 +137,7 @@ void zonaCritica(struct datosCompartida* datos, char clave, FILE* TxtReceptor, F
         char* fechaActual = getFechaHora(); // call the function to get the string
         
         // escribir la info en el log file, se escribe una linea al final del archivo
-        char infoFormato[] = "%d-%c    | %c           |  %d       | %s \n";
+        char infoFormato[] = "%d-%c     | %c           |  %d       | %s \n";
 
         fprintf(logFile, infoFormato, getpid(),'R', text, datos->indiceReceptor, fechaActual);
 
@@ -152,6 +152,7 @@ void zonaCritica(struct datosCompartida* datos, char clave, FILE* TxtReceptor, F
         printf("\n");  
 
         fflush(logFile);
+        fflush(TxtReceptor);
         free(fechaActual);
 
         //Aumentar los indices

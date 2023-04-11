@@ -136,7 +136,7 @@ void zonaCritica(struct datosCompartida* datos, char clave, FILE*TxtEmisor, FILE
         char* fechaActual = getFechaHora(); // call the function to get the string
         
         // escribir la info en el log file, se escribe una linea al final del archivo
-        char infoFormato[] = "%d-%c    | %c           |  %d       | %s \n";
+        char infoFormato[] = "%d-%c     | %c           |  %d       | %s \n";
         //Ponemos la info en el Logfile
         fprintf(logFile, infoFormato, getpid(),'E', text, datos->indiceEmisor, fechaActual);
 
