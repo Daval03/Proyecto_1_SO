@@ -88,10 +88,11 @@ int main(int argc, char *argv[]){
         }
     }
     char enter;
-    if (strcmp(Modo,"m")==0){
-        
+    if (strcmp(Modo,"m")==0){     
         while(1){
-            
+            if(datos->endProcess==1){
+                break;
+            }
             printf("Presione enter para continuar...\n");
             enter = getchar();
             if (enter==13 || enter==10){
@@ -104,8 +105,10 @@ int main(int argc, char *argv[]){
                     /////////////////////////////////////////////////////
                     sem_post(sem_mutexE);
                     sem_post(sem_llenos);
-                    
                     datos->contEmisoresVivos--;
+                    if(datos->endProcess==1){
+                        break;
+                    }
                 }else{
                     break;
                 }

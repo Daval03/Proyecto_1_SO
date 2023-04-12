@@ -9,10 +9,10 @@ compile:
 	gcc Sources/Finalizador.c -o Bin/Finalizador -fsanitize=address -lrt -lpthread
 
 i:
-	./Bin/Inicializador "buffer1" 21 80
+	./Bin/Inicializador "buffer1" 21 3
 e:
-	./Bin/Emisor "a" "buffer1" 21 10
+	./Bin/Emisor "m" "buffer1" 21 10
 r:
-	./Bin/Receptor "a" "buffer1" 21 1
+	./Bin/Receptor "m" "buffer1" 21 1
 f:
 	./Bin/Finalizador

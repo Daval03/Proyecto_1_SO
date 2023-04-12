@@ -74,7 +74,6 @@ int main(int argc, char *argv[]){
         while (1){
             if (datos->endProcess==0){
                 datos->contReceptoresVivos++;
-                
                 sleep(tiempo);
                 sem_wait(sem_llenos);
                 sem_wait(sem_mutexR);
@@ -92,6 +91,9 @@ int main(int argc, char *argv[]){
     char enter;
     if (strcmp(Modo,"m")==0){
         while(1){
+            if(datos->endProcess==1){
+                break;
+            }
             printf("Presione enter para continuar...\n");
             enter = getchar();
             if (enter==13 || enter==10){
@@ -105,6 +107,9 @@ int main(int argc, char *argv[]){
                     sem_post(sem_mutexR);
                     sem_post(sem_vacios);
                     datos->contReceptoresVivos--;
+                    if(datos->endProcess==1){
+                        break;
+                    }
                 }else{
                     break;
                 }
