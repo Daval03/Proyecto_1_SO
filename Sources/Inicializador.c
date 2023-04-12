@@ -125,17 +125,7 @@ int main(int argc, char *argv[]) {
     printf("| %-15s | %-10d | %-18d |\n", ID, clave, numeroEspacio);
     printf("\033[0m"); // Restablecer color del texto a su valor predeterminado
     printf("\n");
-
-     //--- debug
-    struct shmid_ds segment_info;
-    shmctl(shmid, IPC_STAT, &segment_info);
-    printf("Current size of shared memory segment: %ld\n", segment_info.shm_segsz);
-    printf("\n");
-    printf("No. of current attaches: %ld\n", segment_info.shm_nattch);
-    printf("\n");
-    printf("Owner: %d. My PID: %d\n", segment_info.shm_cpid, getpid());
-    /// -----
-
+    
     // desasignar del segmento compartido
     if (shmdt(datos) == -1) { 
         perror("Error eliminando asignacion del seg compartido");
