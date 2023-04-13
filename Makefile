@@ -7,7 +7,10 @@ compile:
 	gcc Sources/Emisor.c -o Bin/Emisor -fsanitize=address -lrt -lpthread
 	gcc Sources/Receptor.c -o Bin/Receptor -fsanitize=address -lrt -lpthread 
 	gcc Sources/Finalizador.c -o Bin/Finalizador -fsanitize=address -lrt -lpthread
+	gcc Sources/consumer.c -o Bin/consumer -lserialport -fsanitize=address -lrt -lpthread
 
+c:
+	./Bin/consumer
 i:
 	./Bin/Inicializador "buffer1" 21 3
 e:
